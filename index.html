@@ -1,160 +1,94 @@
-<!DOCTYPE html>
-<html lang="en-us">
+<!doctype html>
+<!--
+Copyright 2014 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <title>Demopushinbrowser by cmd303</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <meta name="description" content="Sample illustrating the use of Push Messaing and Notifications.">
+
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+
+    <title>Push Messaging &amp; Notifications</title>
+
+    <!-- Add to homescreen for Chrome on Android -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="icon" sizes="192x192" href="../images/touch/chrome-touch-icon-192x192.png">
+
+    <!-- Add to homescreen for Safari on iOS -->
+    <meta name="apple-mobile-web-app-title" content="Push Messaging and Notifications Sample">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" href="../images/apple-touch-icon-precomposed.png">
+
+    <!-- Tile icon for Win8 (144x144 + tile color) -->
+    <meta name="msapplication-TileImage" content="images/touch/ms-touch-icon-144x144-precomposed.png">
+    <meta name="msapplication-TileColor" content="#3372DF">
+
+    <link rel="icon" href="../images/favicon.ico">
+
+    <!-- Include manifest file in the page -->
+    <link rel="manifest" href="manifest.json">
+
   </head>
+
   <body>
-    <section class="page-header">
-      <h1 class="project-name">Demopushinbrowser</h1>
-      <h2 class="project-tagline"></h2>
-      <a href="https://github.com/cmd303/demopushinbrowser" class="btn">View on GitHub</a>
-      <a href="https://github.com/cmd303/demopushinbrowser/zipball/master" class="btn">Download .zip</a>
-      <a href="https://github.com/cmd303/demopushinbrowser/tarball/master" class="btn">Download .tar.gz</a>
-    </section>
+    <h1>Push Messaging &amp; Notifications</h1>
 
-    <section class="main-content">
-  <button class="js-push-button" disabled>
-    Enable Push Messages
-</button>
-<script>
-  var isPushEnabled = false;
-    window.addEventListener('load', function () {
-        var pushButton = document.querySelector('.js-push-button');
-        pushButton.addEventListener('click', function () {
-            if (isPushEnabled) {
-                unsubscribe();
-            } else {
-                subscribe();
-            }
-        });
+    <p>Available in <a href="https://www.chromestatus.com/feature/5416033485586432">Chrome 42+</a> &amp; <a href="https://www.chromestatus.com/feature/5480344312610816">Chrome 42+</a></p>
 
-        // Check that service workers are supported, if so, progressively  
-        // enhance and add push messaging support, otherwise continue without it.  
-        if ('serviceWorker' in navigator) {
-            //navigator.serviceWorker.register('./service-worker.js')
-            //.then(initialiseState);
-            navigator.serviceWorker.register('service-worker.js').then(function(registration) {
-              // Registration was successful 
-              console.log('ServiceWorker registration successful with scope: ',    registration.scope);
-              registration.pushManager.subscribe({userVisibleOnly: true}).then(function(subscription){
-              isPushEnabled = true;  
-              console.log("subscription.subscriptionId: ", subscription.subscriptionId);
-              console.log("subscription.endpoint: ", subscription.endpoint);
+    <p>To use this sample please do the following:</p>
 
-              // TODO: Send the subscription subscription.endpoint
-              // to your server and save it to send a push message
-              // at a later date
-              return sendSubscriptionToServer(subscription);
-              });
-            }).catch(function(err) {
-              // registration failed :(
-              console.log('ServiceWorker registration failed: ', err);
-            });
-        } else {
-            console.warn('Service workers aren\'t supported in this browser.');
-        }
-    });
-    // Once the service worker is registered set the initial state  
-    function initialiseState() {
-        // Are Notifications supported in the service worker?  
-        if (!('showNotification' in ServiceWorkerRegistration.prototype)) {
-            console.warn('Notifications aren\'t supported.');
-            return;
-        }
+    <ol>
+      <li>Create a project in the <a href="https://console.firebase.google.com"  target="_blank">Firebase Developer Console</a>.</li>
+      <li>Go to Settings (The cog near the top left corner), click the 'Cloud Messaging Tab'.</li>
+      <li>Create a copy of [config.sample.js](config.sample.js) called config.js.</li>
+      <li>Create a copy of [manifest.sample.json](manifest.sample.json) called manifest.json.</li>
+      <li>Replace "&lt;Your Cloud Messaging API Key ...&gt;" in your new `config.js` file with your own API key from your new project on Firebase Developer Console.</li>
+      <li>Replace "&lt;Your Cloud Sender ID ...&gt;" in your new `manifest.json` with your own sender ID from the Firebase Developer Console project.</li>
+    </ol>
 
-        // Check the current Notification permission.  
-        // If its denied, it's a permanent block until the  
-        // user changes the permission  
-        if (Notification.permission === 'denied') {
-            console.warn('The user has blocked notifications.');
-            return;
-        }
 
-        // Check if push messaging is supported  
-        if (!('PushManager' in window)) {
-            console.warn('Push messaging isn\'t supported.');
-            return;
-        }
+    <p>
+        <button class="js-push-button" disabled>
+          Enable Push Messages
+        </button>
+    </p>
 
-        // We need the service worker registration to check for a subscription  
-        navigator.serviceWorker.ready.then(function (serviceWorkerRegistration) {
-            // Do we already have a push message subscription?  
-            serviceWorkerRegistration.pushManager.getSubscription()
-              .then(function (subscription) {
-                  // Enable any UI which subscribes / unsubscribes from  
-                  // push messages.  
-                  var pushButton = document.querySelector('.js-push-button');
-                  pushButton.disabled = false;
+    <br />
+    <br />
 
-                  if (!subscription) {
-                      // We aren't subscribed to push, so set UI  
-                      // to allow the user to enable push  
-                      return;
-                  }
+    <h2>cURL Command to Send Push</h2>
+    <div class="js-curl-command"></div>
 
-                  // Keep your server in sync with the latest subscriptionId
-                  sendSubscriptionToServer(subscription);
-
-                  // Set your UI to show they have subscribed for  
-                  // push messages  
-                  pushButton.textContent = 'Disable Push Messages';
-                  isPushEnabled = true;
-              })
-              .catch(function (err) {
-                  console.warn('Error during getSubscription()', err);
-              });
-        });
-    }
-    function subscribe() {
-        // Disable the button so it can't be changed while  
-        // we process the permission request  
-        var pushButton = document.querySelector('.js-push-button');
-        pushButton.disabled = true;
-
-        navigator.serviceWorker.ready.then(function (serviceWorkerRegistration) {
-            serviceWorkerRegistration.pushManager.subscribe()
-              .then(function (subscription) {
-                  // The subscription was successful  
-                  isPushEnabled = true;
-                  pushButton.textContent = 'Disable Push Messages';
-                  pushButton.disabled = false;
-
-                  // TODO: Send the subscription.endpoint to your server  
-                  // and save it to send a push message at a later date
-                  return sendSubscriptionToServer(subscription);
-              })
-              .catch(function (e) {
-                  if (Notification.permission === 'denied') {
-                      // The user denied the notification permission which  
-                      // means we failed to subscribe and the user will need  
-                      // to manually change the notification permission to  
-                      // subscribe to push messages  
-                      console.warn('Permission for Notifications was denied');
-                      pushButton.disabled = true;
-                  } else {
-                      // A problem occurred with the subscription; common reasons  
-                      // include network errors, and lacking gcm_sender_id and/or  
-                      // gcm_user_visible_only in the manifest.  
-                      console.error('Unable to subscribe to push.', e.message);
-                      pushButton.disabled = false;
-                      pushButton.textContent = 'Enable Push Messages';
-                  }
-              });
-        });
-    }
-</script>
-      <footer class="site-footer">
-        <span class="site-footer-owner"><a href="https://github.com/cmd303/demopushinbrowser">Demopushinbrowser</a> is maintained by <a href="https://github.com/cmd303">cmd303</a>.</span>
-
-        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
-      </footer>
-
-    </section>
+    <script src="config.js"></script>
+    <script src="demo.js"></script>
+    <script src="main.js"></script>
+    <script>
+      /* jshint ignore:start */
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+      ga('create', 'UA-53563471-1', 'auto');
+      ga('send', 'pageview');
+      /* jshint ignore:end */
+    </script>
+    <!-- Built with love using Web Starter Kit -->
   </body>
 </html>
